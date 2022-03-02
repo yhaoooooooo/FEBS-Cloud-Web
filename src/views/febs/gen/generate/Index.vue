@@ -16,6 +16,9 @@
       <el-button class="filter-item" type="success" plain @click="reset">
         {{ $t('table.reset') }}
       </el-button>
+      <el-button class="filter-item" type="success" plain @click="gen(null, true)">
+        生成
+      </el-button>
     </div>
     <el-table
       ref="table"
@@ -25,7 +28,9 @@
       border
       fit
       style="width: 100%;"
+      @selection-change="selectionChanged"
     >
+      <el-table-column type="selection" />
       <el-table-column :label="$t('table.gen.generate.tableName')" prop="name" :show-overflow-tooltip="true" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.name }}</span>
@@ -80,7 +85,8 @@ export default {
         size: 10,
         num: 1
       },
-      datasourcesName: []
+      datasourcesName: [],
+      selections: []
     }
   },
   mounted() {
@@ -88,6 +94,14 @@ export default {
     this.getDatasources()
   },
   methods: {
+    selectionChanged(selection) {
+      console.log(selection)
+      this.selections = []
+      for (var i = 0; i < selection.length; i++) {
+        this.selections[i] = selection[i].name
+      }
+      console.log(this.selections)
+    },
     search() {
       this.fetch({
         ...this.queryParams
@@ -98,12 +112,26 @@ export default {
         this.datasourcesName = r.data.data
       })
     },
-    gen(row) {
-      this.$download('generator', {
-        name: row.name,
-        datasource: this.queryParams.datasource,
-        remark: row.remark
-      }, `${row.name}_code.zip`)
+    gen(row, multi) {
+      if (multi) {
+        if (this.selections.length === 0) {
+          this.$message.info('请选择行')
+        } else {
+          this.$download('generator', {
+            names: this.selections,
+            datasource: this.queryParams.datasource,
+            remark: '批量生成'
+          }, `${this.queryParams.datasource}_code.zip`)
+        }
+      } else {
+        var select = []
+        select[0] = row.name
+        this.$download('generator', {
+          names: select[0],
+          datasource: this.queryParams.datasource,
+          remark: row.remark
+        }, `${row.name}_code.zip`)
+      }
     },
     reset() {
       this.queryParams = {}

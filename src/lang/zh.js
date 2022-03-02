@@ -113,6 +113,7 @@ export default {
         trimValue: '表前缀'
       },
       generate: {
+        number: '序号',
         tableName: '表名',
         remark: '备注',
         dataRows: '数据量（行）',
